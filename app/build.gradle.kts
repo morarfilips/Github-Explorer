@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.coil.compose)
 
     // Testing
+    testImplementation(libs.test.junit)
     testImplementation(libs.test.mockk)
     testImplementation(libs.test.coroutines)
     testImplementation(libs.test.turbine)
