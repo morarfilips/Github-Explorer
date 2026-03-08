@@ -1,4 +1,4 @@
-package com.morarfilip.githubexplorer.domain
+package com.morarfilip.githubexplorer.core.domain
 
 import com.morarfilip.githubexplorer.core.data.repository.GithubRepository
 import com.morarfilip.githubexplorer.core.domain.usecase.GetRepositoriesUseCase

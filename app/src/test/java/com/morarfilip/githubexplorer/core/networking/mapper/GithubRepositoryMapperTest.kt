@@ -1,8 +1,7 @@
-package com.morarfilip.githubexplorer.networking.mapper
+package com.morarfilip.githubexplorer.core.networking.mapper
 
 import com.morarfilip.githubexplorer.core.networking.dto.GithubRepoDto
 import com.morarfilip.githubexplorer.core.networking.dto.OwnerDto
-import com.morarfilip.githubexplorer.core.networking.mapper.toDomain
 import org.junit.Test
 
 class GithubRepositoryMapperTest {

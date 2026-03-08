@@ -1,6 +1,5 @@
-package com.morarfilip.githubexplorer.data.repository
+package com.morarfilip.githubexplorer.core.data.repository
 
-import com.morarfilip.githubexplorer.core.data.repository.GithubRepositoryImpl
 import com.morarfilip.githubexplorer.core.networking.GithubApiService
 import com.morarfilip.githubexplorer.core.networking.dto.GithubSearchResponse
 import com.morarfilip.githubexplorer.core.networking.dto.GithubRepoDto

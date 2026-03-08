@@ -43,7 +43,10 @@ configure<ApplicationExtension> {
         compose = true
     }
     testOptions {
-        unitTests.isReturnDefaultValues = true
+        unitTests {
+            isReturnDefaultValues = true
+            isIncludeAndroidResources = true
+        }
     }
 }
 
@@ -55,8 +58,12 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
+    debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui)
 
     // Networking
     implementation(libs.retrofit)
@@ -79,4 +86,8 @@ dependencies {
     testImplementation(libs.test.coroutines)
     testImplementation(libs.test.turbine)
     testImplementation(libs.test.okhttp.mockwebserver)
+    testImplementation(libs.test.robolectric)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    testImplementation(libs.androidx.ui.test.manifest)
 }

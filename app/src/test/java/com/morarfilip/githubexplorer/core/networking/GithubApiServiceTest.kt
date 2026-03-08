@@ -1,6 +1,5 @@
-package com.morarfilip.githubexplorer.networking
+package com.morarfilip.githubexplorer.core.networking
 
-import com.morarfilip.githubexplorer.core.networking.GithubApiService
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
