@@ -68,4 +68,9 @@ dependencies {
 
     // Image Loading
     implementation(libs.coil.compose)
+
+    // Testing
+    testImplementation(libs.test.mockk)
+    testImplementation(libs.test.coroutines)
+    testImplementation(libs.test.turbine)
 }

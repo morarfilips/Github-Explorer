@@ -19,6 +19,11 @@ serialization = "1.10.0"
 composeBom = "2026.02.01"
 coil = "2.7.0"
 
+# Testing
+mockk = "1.14.9"
+kotlinxCoroutines = "1.10.2"
+turbine = "1.2.1"
+
 [libraries]
 # Android & Lifecycle basics
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -45,6 +50,11 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 
 # Coil
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+
+# Testing
+test-mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+test-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+test-turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
