@@ -5,7 +5,7 @@ import com.morarfilip.githubexplorer.core.networking.dto.OwnerDto
 import com.morarfilip.githubexplorer.core.networking.mapper.toDomain
 import org.junit.Test
 
-class GithubMapperTest {
+class GithubRepositoryMapperTest {
 
     @Test
     fun `map DTO to Domain handles null description and language`() {
