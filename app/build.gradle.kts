@@ -42,6 +42,9 @@ configure<ApplicationExtension> {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -58,6 +61,7 @@ dependencies {
     // Networking
     implementation(libs.retrofit)
     implementation(libs.retrofit.serialization)
+    implementation(libs.okhttp.core)
     implementation(libs.okhttp.logging)
     implementation(libs.kotlinx.serialization.json)
 
@@ -74,4 +78,5 @@ dependencies {
     testImplementation(libs.test.mockk)
     testImplementation(libs.test.coroutines)
     testImplementation(libs.test.turbine)
+    testImplementation(libs.test.okhttp.mockwebserver)
 }
