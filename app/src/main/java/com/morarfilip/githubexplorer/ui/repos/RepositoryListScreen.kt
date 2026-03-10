@@ -39,7 +39,7 @@ fun RepositoryListScreen(
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     onRepoClick: (Repository) -> Unit,
-    viewModel: RepoListViewModel = hiltViewModel()
+    viewModel: RepositoryListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -47,26 +47,24 @@ fun RepositoryListScreen(
     RepositoryListContent(
         uiState = uiState,
         searchQuery = searchQuery,
-        sharedTransitionScope,
-        animatedContentScope,
-        onQueryChange = viewModel::onSearchQueryChanged,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedContentScope = animatedContentScope,
+        onIntent = viewModel::onIntent,
         onRepoClick = onRepoClick,
-        onRefresh = viewModel::refresh
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepositoryListContent(
-    uiState: RepoUiState,
+    uiState: RepositoryUiState,
     searchQuery: String,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
-    onQueryChange: (String) -> Unit,
+    onIntent: (RepositoryListIntent) -> Unit,
     onRepoClick: (Repository) -> Unit,
-    onRefresh: () -> Unit
 ) {
-    val isRefreshing = uiState is RepoUiState.Loading
+    val isRefreshing = uiState is RepositoryUiState.Loading
 
     Scaffold(
         topBar = {
@@ -87,7 +85,9 @@ fun RepositoryListContent(
         Column(modifier = Modifier.padding(padding)) {
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = onQueryChange,
+                onValueChange = {
+                    onIntent(RepositoryListIntent.SearchQueryChanged(it))
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
@@ -99,11 +99,13 @@ fun RepositoryListContent(
 
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
+                onRefresh = {
+                    onIntent(RepositoryListIntent.RefreshTriggered)
+                },
                 modifier = Modifier.fillMaxSize()
             ) {
                 when (uiState) {
-                    is RepoUiState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
+                    is RepositoryUiState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
                         CircularProgressIndicator(
                             modifier = Modifier
                                 .align(Alignment.Center)
@@ -111,7 +113,7 @@ fun RepositoryListContent(
                         )
                     }
 
-                    is RepoUiState.Error -> Box(modifier = Modifier.fillMaxSize()) {
+                    is RepositoryUiState.Error -> Box(modifier = Modifier.fillMaxSize()) {
                         Text(
                             text = uiState.message,
                             modifier = Modifier.align(alignment = Alignment.Center),
@@ -119,7 +121,7 @@ fun RepositoryListContent(
                         )
                     }
 
-                    is RepoUiState.Success -> {
+                    is RepositoryUiState.Success -> {
                         if (uiState.repos.isEmpty()) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -143,6 +145,7 @@ fun RepositoryListContent(
                                         sharedTransitionScope = sharedTransitionScope,
                                         animatedContentScope = animatedContentScope,
                                         onClick = {
+                                            onIntent(RepositoryListIntent.RepositoryClicked(repo))
                                             onRepoClick(repo)
                                         }
                                     )

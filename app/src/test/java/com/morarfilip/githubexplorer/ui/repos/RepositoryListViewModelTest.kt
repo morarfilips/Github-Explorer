@@ -21,7 +21,7 @@ import org.junit.Test
 class RepositoryListViewModelTest {
 
     private val getRepositoriesUseCase: GetRepositoriesUseCase = mockk()
-    private lateinit var viewModel: RepoListViewModel
+    private lateinit var viewModel: RepositoryListViewModel
 
     private val testDispatcher = StandardTestDispatcher()
 
@@ -43,7 +43,7 @@ class RepositoryListViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = RepoListViewModel(getRepositoriesUseCase)
+        viewModel = RepositoryListViewModel(getRepositoriesUseCase)
     }
 
     @After
@@ -53,7 +53,7 @@ class RepositoryListViewModelTest {
 
     @Test
     fun `initial state is Loading`() = runTest {
-        assertEquals(RepoUiState.Loading, viewModel.uiState.value)
+        assertEquals(RepositoryUiState.Loading, viewModel.uiState.value)
     }
 
     @Test
@@ -64,16 +64,16 @@ class RepositoryListViewModelTest {
 
         // Act & Assert
         viewModel.uiState.test {
-            assertEquals(RepoUiState.Loading, awaitItem())
+            assertEquals(RepositoryUiState.Loading, awaitItem())
 
-            viewModel.onSearchQueryChanged("kotlin")
+            viewModel.onIntent(RepositoryListIntent.SearchQueryChanged("kotlin"))
 
             testScheduler.advanceTimeBy(1001)
             testScheduler.advanceTimeBy(501)
 
             val result = awaitItem()
-            assertTrue(result is RepoUiState.Success)
-            assertEquals(mockRepos, (result as RepoUiState.Success).repos)
+            assertTrue(result is RepositoryUiState.Success)
+            assertEquals(mockRepos, (result as RepositoryUiState.Success).repos)
         }
     }
 
@@ -85,14 +85,15 @@ class RepositoryListViewModelTest {
 
         // Act & Assert
         viewModel.uiState.test {
-            assertEquals(RepoUiState.Loading, awaitItem())
+            assertEquals(RepositoryUiState.Loading, awaitItem())
 
-            viewModel.onSearchQueryChanged("rust")
+            viewModel.onIntent(RepositoryListIntent.SearchQueryChanged("rust"))
+            testScheduler.advanceTimeBy(1001)
             testScheduler.advanceTimeBy(501)
 
             val result = awaitItem()
-            assertTrue(result is RepoUiState.Error)
-            assertEquals(errorMessage, (result as RepoUiState.Error).message)
+            assertTrue(result is RepositoryUiState.Error)
+            assertEquals(errorMessage, (result as RepositoryUiState.Error).message)
         }
     }
 
@@ -103,14 +104,15 @@ class RepositoryListViewModelTest {
 
         // Act & Assert
         viewModel.uiState.test {
-            assertEquals(RepoUiState.Loading, awaitItem())
+            assertEquals(RepositoryUiState.Loading, awaitItem())
 
-            viewModel.onSearchQueryChanged("nonexistent")
+            viewModel.onIntent(RepositoryListIntent.SearchQueryChanged("nonexistent"))
+            testScheduler.advanceTimeBy(1001)
             testScheduler.advanceTimeBy(501)
 
             val result = awaitItem()
-            assertTrue(result is RepoUiState.Success)
-            assertTrue((result as RepoUiState.Success).repos.isEmpty())
+            assertTrue(result is RepositoryUiState.Success)
+            assertTrue((result as RepositoryUiState.Success).repos.isEmpty())
         }
     }
 
@@ -123,23 +125,23 @@ class RepositoryListViewModelTest {
 
         // Act & Assert
         viewModel.uiState.test {
-            assertEquals(RepoUiState.Loading, awaitItem())
+            assertEquals(RepositoryUiState.Loading, awaitItem())
 
-            viewModel.onSearchQueryChanged(query)
+            viewModel.onIntent(RepositoryListIntent.SearchQueryChanged(query))
             testScheduler.advanceTimeBy(1001) // Debounce
             testScheduler.advanceTimeBy(501)  // flatMapLatest delay
 
-            assertEquals(RepoUiState.Success(mockRepos), awaitItem())
+            assertEquals(RepositoryUiState.Success(mockRepos), awaitItem())
 
-            viewModel.refresh()
+            viewModel.onIntent(RepositoryListIntent.RefreshTriggered)
 
-            assertEquals(RepoUiState.Loading, awaitItem())
+            assertEquals(RepositoryUiState.Loading, awaitItem())
 
             testScheduler.advanceTimeBy(501)
 
             val result = awaitItem()
-            assertTrue(result is RepoUiState.Success)
-            assertEquals(mockRepos, (result as RepoUiState.Success).repos)
+            assertTrue(result is RepositoryUiState.Success)
+            assertEquals(mockRepos, (result as RepositoryUiState.Success).repos)
         }
     }
 }
