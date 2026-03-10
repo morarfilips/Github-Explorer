@@ -1,6 +1,9 @@
 package com.morarfilip.githubexplorer.ui.repos
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -28,10 +32,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.morarfilip.githubexplorer.core.model.Repository
 import com.morarfilip.githubexplorer.ui.repos.components.RepositoryCard
+import com.morarfilip.githubexplorer.ui.theme.GithubExplorerTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +45,7 @@ fun RepositoryListScreen(
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     onRepoClick: (Repository) -> Unit,
-    viewModel: RepoListViewModel = hiltViewModel()
+    viewModel: RepositoryListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -47,26 +53,24 @@ fun RepositoryListScreen(
     RepositoryListContent(
         uiState = uiState,
         searchQuery = searchQuery,
-        sharedTransitionScope,
-        animatedContentScope,
-        onQueryChange = viewModel::onSearchQueryChanged,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedContentScope = animatedContentScope,
+        onIntent = viewModel::onIntent,
         onRepoClick = onRepoClick,
-        onRefresh = viewModel::refresh
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepositoryListContent(
-    uiState: RepoUiState,
+    uiState: RepositoryUiState,
     searchQuery: String,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
-    onQueryChange: (String) -> Unit,
+    onIntent: (RepositoryListIntent) -> Unit,
     onRepoClick: (Repository) -> Unit,
-    onRefresh: () -> Unit
 ) {
-    val isRefreshing = uiState is RepoUiState.Loading
+    val isRefreshing = uiState is RepositoryUiState.Loading
 
     Scaffold(
         topBar = {
@@ -87,7 +91,9 @@ fun RepositoryListContent(
         Column(modifier = Modifier.padding(padding)) {
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = onQueryChange,
+                onValueChange = {
+                    onIntent(RepositoryListIntent.SearchQueryChanged(it))
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
@@ -99,11 +105,13 @@ fun RepositoryListContent(
 
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
+                onRefresh = {
+                    onIntent(RepositoryListIntent.RefreshTriggered)
+                },
                 modifier = Modifier.fillMaxSize()
             ) {
                 when (uiState) {
-                    is RepoUiState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
+                    is RepositoryUiState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
                         CircularProgressIndicator(
                             modifier = Modifier
                                 .align(Alignment.Center)
@@ -111,7 +119,7 @@ fun RepositoryListContent(
                         )
                     }
 
-                    is RepoUiState.Error -> Box(modifier = Modifier.fillMaxSize()) {
+                    is RepositoryUiState.Error -> Box(modifier = Modifier.fillMaxSize()) {
                         Text(
                             text = uiState.message,
                             modifier = Modifier.align(alignment = Alignment.Center),
@@ -119,7 +127,7 @@ fun RepositoryListContent(
                         )
                     }
 
-                    is RepoUiState.Success -> {
+                    is RepositoryUiState.Success -> {
                         if (uiState.repos.isEmpty()) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -143,12 +151,75 @@ fun RepositoryListContent(
                                         sharedTransitionScope = sharedTransitionScope,
                                         animatedContentScope = animatedContentScope,
                                         onClick = {
+                                            onIntent(RepositoryListIntent.RepositoryClicked(repo))
                                             onRepoClick(repo)
                                         }
                                     )
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Preview(
+    showBackground = true,
+    device = "spec:width=411dp,height=891dp",
+    name = "Phone - Light"
+)
+@Preview(
+    showBackground = true,
+    device = "spec:width=411dp,height=891dp",
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+    name = "Phone - Dark"
+)
+@Preview(
+    showBackground = true,
+    device = "spec:width=1280dp,height=800dp,orientation=landscape",
+    name = "Tablet - Light"
+)
+@Preview(
+    showBackground = true,
+    device = "spec:width=1280dp,height=800dp,orientation=landscape",
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+    name = "Tablet - Dark"
+)
+@Composable
+fun PreviewRepositoryListContent() {
+    val mockRepos = List(8) { index ->
+        Repository(
+            id = index.toLong(),
+            name = if (index % 2 == 0) "Compose-Samples" else "Accompanist",
+            ownerName = if (index % 2 == 0) "android" else "google",
+            ownerAvatarUrl = "",
+            description = "A collection of Jetpack Compose samples and libraries for building modern UIs.",
+            stars = 25000,
+            forks = 5000,
+            watchers = 1200,
+            openIssues = 42,
+            license = "Apache 2.0",
+            lastUpdated = "2026-03-10T10:00:00Z",
+            language = "Kotlin"
+        )
+    }
+
+    GithubExplorerTheme {
+        SharedTransitionLayout {
+            AnimatedContent(targetState = true, label = "list_preview") { target ->
+                if (target) {
+                    Surface(color = MaterialTheme.colorScheme.background) {
+                        RepositoryListContent(
+                            uiState = RepositoryUiState.Success(mockRepos),
+                            searchQuery = "Kotlin",
+                            sharedTransitionScope = this@SharedTransitionLayout,
+                            animatedContentScope = this@AnimatedContent,
+                            onIntent = {},
+                            onRepoClick = {}
+                        )
                     }
                 }
             }

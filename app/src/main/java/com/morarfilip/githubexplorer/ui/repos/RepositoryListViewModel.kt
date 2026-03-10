@@ -1,5 +1,6 @@
 package com.morarfilip.githubexplorer.ui.repos
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.morarfilip.githubexplorer.core.domain.usecase.GetRepositoriesUseCase
@@ -19,14 +20,20 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 
-sealed interface RepoUiState {
-    object Loading : RepoUiState
-    data class Success(val repos: List<Repository>) : RepoUiState
-    data class Error(val message: String) : RepoUiState
+sealed interface RepositoryUiState {
+    object Loading : RepositoryUiState
+    data class Success(val repos: List<Repository>) : RepositoryUiState
+    data class Error(val message: String) : RepositoryUiState
+}
+
+sealed interface RepositoryListIntent {
+    data class SearchQueryChanged(val query: String) : RepositoryListIntent
+    data class RepositoryClicked(val repo: Repository) : RepositoryListIntent
+    object RefreshTriggered : RepositoryListIntent
 }
 
 @HiltViewModel
-class RepoListViewModel @Inject constructor(
+class RepositoryListViewModel @Inject constructor(
     private val getRepositoriesUseCase: GetRepositoriesUseCase
 ) : ViewModel() {
 
@@ -35,35 +42,47 @@ class RepoListViewModel @Inject constructor(
 
     private val refreshTrigger = MutableStateFlow(0)
 
+    fun onIntent(intent: RepositoryListIntent) {
+        when (intent) {
+            is RepositoryListIntent.SearchQueryChanged -> onSearchQueryChanged(intent.query)
+            is RepositoryListIntent.RefreshTriggered -> onRefresh()
+            is RepositoryListIntent.RepositoryClicked -> {
+                // navigation done in UI
+            }
+        }
+    }
+
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<RepoUiState> = combine(
+    val uiState: StateFlow<RepositoryUiState> = combine(
         _searchQuery.debounce(1000L),
         refreshTrigger
     ) { query, _ -> query }
         .flatMapLatest { query ->
             flow {
-                emit(RepoUiState.Loading)
+                emit(RepositoryUiState.Loading)
                 delay(500)
 
                 val result = getRepositoriesUseCase(query)
                 result.onSuccess {
-                    emit(RepoUiState.Success(it))
+                    emit(RepositoryUiState.Success(it))
                 }.onFailure {
-                    emit(RepoUiState.Error(it.message ?: "Unknown Error"))
+                    emit(RepositoryUiState.Error(it.message ?: "Unknown Error"))
                 }
             }
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = RepoUiState.Loading
+            initialValue = RepositoryUiState.Loading
         )
 
-    fun onSearchQueryChanged(newQuery: String) {
+    @VisibleForTesting
+    internal fun onSearchQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery
     }
 
-    fun refresh() {
+    @VisibleForTesting
+    internal fun onRefresh() {
         refreshTrigger.value ++
     }
 }
