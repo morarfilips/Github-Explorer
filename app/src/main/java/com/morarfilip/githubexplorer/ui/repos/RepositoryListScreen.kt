@@ -17,6 +17,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,7 +44,8 @@ fun RepositoryListScreen(
         uiState = uiState,
         searchQuery = searchQuery,
         onQueryChange = viewModel::onSearchQueryChanged,
-        onRepoClick = onRepoClick
+        onRepoClick = onRepoClick,
+        onRefresh = viewModel::refresh
     )
 }
 
@@ -53,8 +55,11 @@ fun RepositoryListContent(
     uiState: RepoUiState,
     searchQuery: String,
     onQueryChange: (String) -> Unit,
-    onRepoClick: (Repository) -> Unit
+    onRepoClick: (Repository) -> Unit,
+    onRefresh: () -> Unit
 ) {
+    val isRefreshing = uiState is RepoUiState.Loading
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -84,45 +89,54 @@ fun RepositoryListContent(
                 singleLine = true
             )
 
-            when (uiState) {
-                is RepoUiState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
-                    CircularProgressIndicator(modifier = Modifier
-                        .align(Alignment.Center)
-                        .testTag("loading_indicator")
-                    )
-                }
-                is RepoUiState.Error -> Box(modifier = Modifier.fillMaxSize()) {
-                    Text(
-                        text = uiState.message,
-                        modifier = Modifier.align(alignment = Alignment.Center),
-                        color = Color.Red
-                    )
-                }
-                is RepoUiState.Success -> {
-                    if (uiState.repos.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No repositories found for \"$searchQuery\"",
-                                style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    } else {
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(2),
-                            contentPadding = PaddingValues(8.dp),
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            items(uiState.repos) { repo ->
-                                RepositoryCard(
-                                    repo = repo,
-                                    onClick = {
-                                        onRepoClick(repo)
-                                    }
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when (uiState) {
+                    is RepoUiState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .testTag("loading_indicator")
+                        )
+                    }
+
+                    is RepoUiState.Error -> Box(modifier = Modifier.fillMaxSize()) {
+                        Text(
+                            text = uiState.message,
+                            modifier = Modifier.align(alignment = Alignment.Center),
+                            color = Color.Red
+                        )
+                    }
+
+                    is RepoUiState.Success -> {
+                        if (uiState.repos.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No repositories found for \"$searchQuery\"",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    textAlign = TextAlign.Center
                                 )
+                            }
+                        } else {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(2),
+                                contentPadding = PaddingValues(8.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                items(uiState.repos) { repo ->
+                                    RepositoryCard(
+                                        repo = repo,
+                                        onClick = {
+                                            onRepoClick(repo)
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

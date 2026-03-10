@@ -41,7 +41,8 @@ class RepositoryListScreenTest {
                 uiState = RepoUiState.Success(mockRepos),
                 searchQuery = "kotlin",
                 onQueryChange = {},
-                onRepoClick = {}
+                onRepoClick = {},
+                onRefresh = {}
             )
         }
 
@@ -60,7 +61,8 @@ class RepositoryListScreenTest {
                 uiState = RepoUiState.Loading,
                 searchQuery = "",
                 onQueryChange = {},
-                onRepoClick = {}
+                onRepoClick = {},
+                onRefresh = {}
             )
         }
 
@@ -79,7 +81,8 @@ class RepositoryListScreenTest {
                 uiState = RepoUiState.Error(errorMsg),
                 searchQuery = "",
                 onQueryChange = {},
-                onRepoClick = {}
+                onRepoClick = {},
+                onRefresh = {}
             )
         }
 
@@ -95,7 +98,8 @@ class RepositoryListScreenTest {
                 uiState = RepoUiState.Success(emptyList()),
                 searchQuery = "xyz123",
                 onQueryChange = {},
-                onRepoClick = {}
+                onRepoClick = {},
+                onRefresh = {}
             )
         }
 

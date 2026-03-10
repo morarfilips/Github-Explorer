@@ -57,23 +57,20 @@ class RepositoryListViewModelTest {
     }
 
     @Test
-    fun `search query change updates state to Success after debounce`() = runTest {
+    fun `search query change updates state to Success after debounce and delay`() = runTest {
         // Arrange
         val mockRepos = listOf(mockRepo)
         coEvery { getRepositoriesUseCase("kotlin") } returns Result.success(mockRepos)
 
         // Act & Assert
         viewModel.uiState.test {
-            // 1. Initial emission
             assertEquals(RepoUiState.Loading, awaitItem())
 
-            // 2. Trigger search
             viewModel.onSearchQueryChanged("kotlin")
 
-            // 3. Advance time to skip the 1000ms debounce
             testScheduler.advanceTimeBy(1001)
+            testScheduler.advanceTimeBy(501)
 
-            // 4. Check Success state
             val result = awaitItem()
             assertTrue(result is RepoUiState.Success)
             assertEquals(mockRepos, (result as RepoUiState.Success).repos)
@@ -114,6 +111,35 @@ class RepositoryListViewModelTest {
             val result = awaitItem()
             assertTrue(result is RepoUiState.Success)
             assertTrue((result as RepoUiState.Success).repos.isEmpty())
+        }
+    }
+
+    @Test
+    fun `refresh triggers reload of current query`() = runTest {
+        // Arrange
+        val query = "kotlin"
+        val mockRepos = listOf(mockRepo)
+        coEvery { getRepositoriesUseCase(query) } returns Result.success(mockRepos)
+
+        // Act & Assert
+        viewModel.uiState.test {
+            assertEquals(RepoUiState.Loading, awaitItem())
+
+            viewModel.onSearchQueryChanged(query)
+            testScheduler.advanceTimeBy(1001) // Debounce
+            testScheduler.advanceTimeBy(501)  // flatMapLatest delay
+
+            assertEquals(RepoUiState.Success(mockRepos), awaitItem())
+
+            viewModel.refresh()
+
+            assertEquals(RepoUiState.Loading, awaitItem())
+
+            testScheduler.advanceTimeBy(501)
+
+            val result = awaitItem()
+            assertTrue(result is RepoUiState.Success)
+            assertEquals(mockRepos, (result as RepoUiState.Success).repos)
         }
     }
 }
