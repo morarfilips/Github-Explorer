@@ -18,12 +18,27 @@ import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class RepoListViewModelTest {
+class RepositoryListViewModelTest {
 
     private val getRepositoriesUseCase: GetRepositoriesUseCase = mockk()
     private lateinit var viewModel: RepoListViewModel
 
     private val testDispatcher = StandardTestDispatcher()
+
+    private val mockRepo = Repository(
+        1L,
+        "Kotlin-Repo",
+        "Desc",
+        10,
+        5,
+        8,
+        2,
+        "2026-03-09T15:54:11Z",
+        "jetbrains",
+        "url",
+        "Kotlin",
+        "Apache 2.0"
+    )
 
     @Before
     fun setup() {
@@ -44,18 +59,7 @@ class RepoListViewModelTest {
     @Test
     fun `search query change updates state to Success after debounce`() = runTest {
         // Arrange
-        val mockRepos = listOf(
-            Repository(
-                1,
-                "Kotlin-Repo",
-                "Desc",
-                10,
-                5,
-                "2026",
-                "url",
-                "Kotlin"
-            )
-        )
+        val mockRepos = listOf(mockRepo)
         coEvery { getRepositoriesUseCase("kotlin") } returns Result.success(mockRepos)
 
         // Act & Assert
@@ -63,12 +67,13 @@ class RepoListViewModelTest {
             // 1. Initial emission
             assertEquals(RepoUiState.Loading, awaitItem())
 
+            // 2. Trigger search
             viewModel.onSearchQueryChanged("kotlin")
 
-            // 2. Advance time by 500ms to trigger debounce
-            testScheduler.advanceTimeBy(501)
+            // 3. Advance time to skip the 1000ms debounce
+            testScheduler.advanceTimeBy(1001)
 
-            // 3. Check Success state
+            // 4. Check Success state
             val result = awaitItem()
             assertTrue(result is RepoUiState.Success)
             assertEquals(mockRepos, (result as RepoUiState.Success).repos)
@@ -91,6 +96,24 @@ class RepoListViewModelTest {
             val result = awaitItem()
             assertTrue(result is RepoUiState.Error)
             assertEquals(errorMessage, (result as RepoUiState.Error).message)
+        }
+    }
+
+    @Test
+    fun `empty result returns Success with empty list`() = runTest {
+        // Arrange
+        coEvery { getRepositoriesUseCase("nonexistent") } returns Result.success(emptyList())
+
+        // Act & Assert
+        viewModel.uiState.test {
+            assertEquals(RepoUiState.Loading, awaitItem())
+
+            viewModel.onSearchQueryChanged("nonexistent")
+            testScheduler.advanceTimeBy(501)
+
+            val result = awaitItem()
+            assertTrue(result is RepoUiState.Success)
+            assertTrue((result as RepoUiState.Success).repos.isEmpty())
         }
     }
 }

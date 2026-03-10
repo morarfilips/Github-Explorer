@@ -6,6 +6,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Retrofit
@@ -15,21 +16,26 @@ class GithubApiServiceTest {
     private lateinit var server: MockWebServer
     private lateinit var api: GithubApiService
 
+    private val jsonConfig = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
+
     @Before
     fun setup() {
         server = MockWebServer()
-        val json = Json { ignoreUnknownKeys = true }
         val contentType = "application/json".toMediaType()
 
         api = Retrofit.Builder()
             .baseUrl(server.url("/"))
-            .addConverterFactory(json.asConverterFactory(contentType))
+            .addConverterFactory(jsonConfig.asConverterFactory(contentType))
             .build()
             .create(GithubApiService::class.java)
     }
 
     @Test
-    fun `searchRepositories parses JSON correctly`() = runTest {
+    fun `searchRepositories parses full JSON schema correctly`() = runTest {
+        // Arrange
         val mockJsonResponse = """
         {
             "items": [
@@ -39,9 +45,17 @@ class GithubApiServiceTest {
                     "description": "A cool repo",
                     "stargazers_count": 100,
                     "forks_count": 50,
-                    "updated_at": "2026-03-08T12:00:00Z",
+                    "watchers_count": 75,
+                    "open_issues_count": 3,
+                    "updated_at": "2026-03-09T15:54:11Z",
                     "language": "Kotlin",
-                    "owner": { "avatar_url": "https://url.com" }
+                    "owner": { 
+                        "login": "morarfilip",
+                        "avatar_url": "https://url.com" 
+                    },
+                    "license": {
+                        "name": "MIT License"
+                    }
                 }
             ]
         }""".trimIndent()
@@ -53,8 +67,12 @@ class GithubApiServiceTest {
 
         // Assert
         val item = response.items.first()
-        assert(item.name == "GithubProject")
-        assert(item.stars == 100)
+        assertEquals("GithubProject", item.name)
+        assertEquals(100, item.stars)
+        assertEquals(75, item.watchers)
+        assertEquals(3, item.openIssues)
+        assertEquals("morarfilip", item.owner.login)
+        assertEquals("MIT License", item.license?.name)
     }
 
     @After

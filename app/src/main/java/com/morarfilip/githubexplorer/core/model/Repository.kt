@@ -6,7 +6,11 @@ data class Repository(
     val description: String,
     val stars: Int,
     val forks: Int,
+    val watchers: Int,
+    val openIssues: Int,
     val lastUpdated: String,
+    val ownerName: String,
     val ownerAvatarUrl: String,
-    val language: String
+    val language: String,
+    val license: String,
 )

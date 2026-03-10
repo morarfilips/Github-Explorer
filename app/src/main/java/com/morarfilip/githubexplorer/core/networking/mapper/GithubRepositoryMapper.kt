@@ -1,17 +1,21 @@
 package com.morarfilip.githubexplorer.core.networking.mapper
 
 import com.morarfilip.githubexplorer.core.model.Repository
-import com.morarfilip.githubexplorer.core.networking.dto.GithubRepoDto
+import com.morarfilip.githubexplorer.core.networking.dto.GithubRepositoryDto
 
-fun GithubRepoDto.toDomain(): Repository {
+fun GithubRepositoryDto.toDomain(): Repository {
     return Repository(
         id = id,
         name = name,
-        description = description ?: "No description provided",
+        ownerName = owner.login,
+        ownerAvatarUrl = owner.avatarUrl,
+        description = description ?: "",
         stars = stars,
         forks = forks,
+        watchers = watchers,
+        openIssues = openIssues,
         lastUpdated = updatedAt,
-        ownerAvatarUrl = owner.avatarUrl,
-        language = language ?: "Unknown"
+        language = language ?: "Unknown",
+        license = license?.name ?: "No License"
     )
 }

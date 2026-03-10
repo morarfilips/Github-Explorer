@@ -18,21 +18,24 @@ class RepositoryCardTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    @Test
-    fun repositoryCard_displaysAllInformation() {
-        // Arrange
-        val mockRepo = Repository(
-            1,
-            "Test-Repo",
-            "This is a test description",
-            100,
-            20,
-            "2026-03-08",
-            "https://example.com/avatar.png",
-            "Kotlin"
-        )
+    private val mockRepo = Repository(
+        1L,
+        "Test-Repo",
+        "This is a test description",
+        100,
+        20,
+        50,
+        5,
+        "2026-03-09T15:54:11Z",
+        "test_owner",
+        "https://example.com/avatar.png",
+        "Kotlin",
+        "MIT"
+    )
 
-        // Act
+    @Test
+    fun repositoryCard_displaysKeyInformation() {
+        // Arrange & Act
         composeTestRule.setContent {
             RepositoryCard(
                 repo = mockRepo,
@@ -43,6 +46,7 @@ class RepositoryCardTest {
         // Assert
         composeTestRule.onNodeWithText("Test-Repo").assertIsDisplayed()
         composeTestRule.onNodeWithText("This is a test description").assertIsDisplayed()
+
         composeTestRule.onNodeWithContentDescription("Avatar of Test-Repo owner").assertIsDisplayed()
     }
 
@@ -50,17 +54,8 @@ class RepositoryCardTest {
     fun repositoryCard_triggersOnClick() {
         // Arrange
         var clicked = false
-        val mockRepo = Repository(
-            1,
-            "Name",
-            "Desc",
-            0,
-            0,
-            "",
-            "",
-            ""
-        )
 
+        // Act
         composeTestRule.setContent {
             RepositoryCard(
                 repo = mockRepo,
@@ -70,8 +65,7 @@ class RepositoryCardTest {
             )
         }
 
-        // Act
-        composeTestRule.onNodeWithText("Name").performClick()
+        composeTestRule.onNodeWithText("Test-Repo").performClick()
 
         // Assert
         assertTrue("Click listener was not triggered", clicked)

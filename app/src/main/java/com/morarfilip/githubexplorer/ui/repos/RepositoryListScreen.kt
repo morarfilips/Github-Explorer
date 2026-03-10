@@ -23,6 +23,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.morarfilip.githubexplorer.core.model.Repository
@@ -84,7 +86,10 @@ fun RepositoryListContent(
 
             when (uiState) {
                 is RepoUiState.Loading -> Box(modifier = Modifier.fillMaxSize()) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(modifier = Modifier
+                        .align(Alignment.Center)
+                        .testTag("loading_indicator")
+                    )
                 }
                 is RepoUiState.Error -> Box(modifier = Modifier.fillMaxSize()) {
                     Text(
@@ -94,16 +99,31 @@ fun RepositoryListContent(
                     )
                 }
                 is RepoUiState.Success -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(8.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(uiState.repos) { repo ->
-                            RepositoryCard(
-                                repo = repo,
-                                onClick = { onRepoClick(repo) }
+                    if (uiState.repos.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No repositories found for \"$searchQuery\"",
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center
                             )
+                        }
+                    } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            contentPadding = PaddingValues(8.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(uiState.repos) { repo ->
+                                RepositoryCard(
+                                    repo = repo,
+                                    onClick = {
+                                        onRepoClick(repo)
+                                    }
+                                )
+                            }
                         }
                     }
                 }

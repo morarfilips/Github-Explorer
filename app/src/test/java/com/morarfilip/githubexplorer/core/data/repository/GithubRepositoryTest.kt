@@ -2,11 +2,14 @@ package com.morarfilip.githubexplorer.core.data.repository
 
 import com.morarfilip.githubexplorer.core.networking.GithubApiService
 import com.morarfilip.githubexplorer.core.networking.dto.GithubSearchResponse
-import com.morarfilip.githubexplorer.core.networking.dto.GithubRepoDto
+import com.morarfilip.githubexplorer.core.networking.dto.GithubRepositoryDto
+import com.morarfilip.githubexplorer.core.networking.dto.LicenseDto
 import com.morarfilip.githubexplorer.core.networking.dto.OwnerDto
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -23,15 +26,18 @@ class GithubRepositoryTest {
     @Test
     fun `getRepositories returns success when API call is successful`() = runTest {
         // Arrange
-        val mockDto = GithubRepoDto(
+        val mockDto = GithubRepositoryDto(
             id = 1,
             name = "Test Repo",
             description = "Description",
             stars = 100,
             forks = 10,
-            updatedAt = "2026-03-08",
-            owner = OwnerDto("https://avatar.url"),
-            language = "Kotlin"
+            watchers = 50,
+            openIssues = 5,
+            updatedAt = "2026-03-09T15:54:11Z",
+            owner = OwnerDto(login = "kotlin_dev", avatarUrl = "https://avatar.url"),
+            language = "Kotlin",
+            license = LicenseDto(name = "Apache 2.0")
         )
         val mockResponse = GithubSearchResponse(items = listOf(mockDto))
 
@@ -41,22 +47,29 @@ class GithubRepositoryTest {
         val result = repository.getRepositories("kotlin")
 
         // Assert
-        assert(result.isSuccess)
+        assertTrue(result.isSuccess)
         val repos = result.getOrNull()
-        assert(repos?.size == 1)
-        assert(repos?.first()?.name == "Test Repo")
+
+        assertEquals(1, repos?.size)
+        val repo = repos?.first()
+        assertEquals("Test Repo", repo?.name)
+        assertEquals("kotlin_dev", repo?.ownerName)
+        assertEquals(50, repo?.watchers)
+        assertEquals(5, repo?.openIssues)
+        assertEquals("Apache 2.0", repo?.license)
     }
 
     @Test
     fun `getRepositories returns failure when API call throws exception`() = runTest {
         // Arrange
-        coEvery { apiService.searchRepositories(any(), any(), any()) } throws Exception("Network Error")
+        val errorMessage = "Network Error"
+        coEvery { apiService.searchRepositories(any(), any(), any()) } throws Exception(errorMessage)
 
         // Act
         val result = repository.getRepositories("kotlin")
 
         // Assert
-        assert(result.isFailure)
-        assert(result.exceptionOrNull()?.message == "Network Error")
+        assertTrue(result.isFailure)
+        assertEquals(errorMessage, result.exceptionOrNull()?.message)
     }
 }

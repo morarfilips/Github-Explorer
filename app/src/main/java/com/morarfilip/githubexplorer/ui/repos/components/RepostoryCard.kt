@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -65,7 +66,9 @@ fun RepositoryCard(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -76,26 +79,36 @@ fun RepositoryCard(
                 maxLines = 3,
                 minLines = 3,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
 @Preview(showBackground = true, name = "Light Mode")
-@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Dark Mode")
+@Preview(
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+    name = "Dark Mode"
+)
 @Composable
 fun RepositoryCardPreview() {
     GithubExplorerTheme {
         RepositoryCard(
             repo = Repository(
-                id = 1,
+                id = 1L,
                 name = "Kotlin-Explorer",
+                ownerName = "morarfilip",
+                ownerAvatarUrl = "",
                 description = "A clean architecture repository explorer with Compose.",
                 stars = 1337,
                 forks = 42,
-                lastUpdated = "2026-03-08",
-                ownerAvatarUrl = "",
+                watchers = 200,
+                openIssues = 5,
+                license = "MIT",
+                lastUpdated = "2026-03-08T12:00:00Z",
                 language = "Kotlin"
             ),
             onClick = {}

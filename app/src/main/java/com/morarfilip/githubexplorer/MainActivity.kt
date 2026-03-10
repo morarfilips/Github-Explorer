@@ -4,6 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import com.morarfilip.githubexplorer.ui.navigation.NavGraph
 import com.morarfilip.githubexplorer.ui.theme.GithubExplorerTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,9 +22,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             GithubExplorerTheme {
-                // The NavGraph manages the screens (List and Details)
-                // and handles the navigation logic
-                NavGraph()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    NavGraph()
+                }
             }
         }
     }
