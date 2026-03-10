@@ -116,4 +116,34 @@ class RepositoryListViewModelTest {
             assertTrue((result as RepoUiState.Success).repos.isEmpty())
         }
     }
+
+    @Test
+    fun `refresh triggers reload of current query`() = runTest {
+        // Arrange
+        val query = "kotlin"
+        val mockRepos = listOf(mockRepo)
+        coEvery { getRepositoriesUseCase(query) } returns Result.success(mockRepos)
+
+        viewModel.uiState.test {
+            assertEquals(RepoUiState.Loading, awaitItem())
+
+            viewModel.onSearchQueryChanged(query)
+            testScheduler.advanceTimeBy(1001) // Debounce
+            testScheduler.advanceTimeBy(501)  // flatMapLatest delay
+
+            assertEquals(RepoUiState.Success(mockRepos), awaitItem())
+
+            // Act
+            viewModel.refresh()
+
+            // Assert
+            assertEquals(RepoUiState.Loading, awaitItem())
+
+            testScheduler.advanceTimeBy(501)
+
+            val result = awaitItem()
+            assertTrue(result is RepoUiState.Success)
+            assertEquals(mockRepos, (result as RepoUiState.Success).repos)
+        }
+    }
 }

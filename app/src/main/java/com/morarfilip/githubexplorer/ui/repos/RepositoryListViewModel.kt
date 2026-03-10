@@ -8,10 +8,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -31,12 +33,18 @@ class RepoListViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
+    private val refreshTrigger = MutableStateFlow(0)
+
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<RepoUiState> = _searchQuery
-        .debounce(1000L)
+    val uiState: StateFlow<RepoUiState> = combine(
+        _searchQuery.debounce(1000L),
+        refreshTrigger
+    ) { query, _ -> query }
         .flatMapLatest { query ->
             flow {
                 emit(RepoUiState.Loading)
+                delay(500)
+
                 val result = getRepositoriesUseCase(query)
                 result.onSuccess {
                     emit(RepoUiState.Success(it))
@@ -53,5 +61,9 @@ class RepoListViewModel @Inject constructor(
 
     fun onSearchQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery
+    }
+
+    fun refresh() {
+        refreshTrigger.value ++
     }
 }
