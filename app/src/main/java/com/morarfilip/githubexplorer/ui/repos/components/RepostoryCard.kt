@@ -1,5 +1,10 @@
 package com.morarfilip.githubexplorer.ui.repos.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +34,8 @@ import com.morarfilip.githubexplorer.ui.theme.GithubExplorerTheme
 @Composable
 fun RepositoryCard(
     repo: Repository,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -50,14 +57,20 @@ fun RepositoryCard(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AsyncImage(
-                model = repo.ownerAvatarUrl,
-                contentDescription = "Avatar of ${repo.name} owner",
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
+            with(sharedTransitionScope) {
+                AsyncImage(
+                    model = repo.ownerAvatarUrl,
+                    contentDescription = "Avatar of ${repo.name} owner",
+                    modifier = Modifier
+                        .sharedElement(
+                            sharedContentState = rememberSharedContentState(key = "avatar-${repo.id}"),
+                            animatedVisibilityScope = animatedContentScope
+                        )
+                        .size(64.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -87,6 +100,7 @@ fun RepositoryCard(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = true, name = "Light Mode")
 @Preview(
     showBackground = true,
@@ -96,22 +110,30 @@ fun RepositoryCard(
 @Composable
 fun RepositoryCardPreview() {
     GithubExplorerTheme {
-        RepositoryCard(
-            repo = Repository(
-                id = 1L,
-                name = "Kotlin-Explorer",
-                ownerName = "morarfilip",
-                ownerAvatarUrl = "",
-                description = "A clean architecture repository explorer with Compose.",
-                stars = 1337,
-                forks = 42,
-                watchers = 200,
-                openIssues = 5,
-                license = "MIT",
-                lastUpdated = "2026-03-08T12:00:00Z",
-                language = "Kotlin"
-            ),
-            onClick = {}
-        )
+        SharedTransitionLayout {
+            AnimatedContent(targetState = true, label = "preview") { target ->
+                if (target) {
+                    RepositoryCard(
+                        repo = Repository(
+                            id = 1L,
+                            name = "Kotlin-Explorer",
+                            ownerName = "morarfilip",
+                            ownerAvatarUrl = "",
+                            description = "A clean architecture repository explorer with Compose.",
+                            stars = 1337,
+                            forks = 42,
+                            watchers = 200,
+                            openIssues = 5,
+                            license = "MIT",
+                            lastUpdated = "2026-03-08T12:00:00Z",
+                            language = "Kotlin"
+                        ),
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedContentScope = this@AnimatedContent,
+                        onClick = {}
+                    )
+                }
+            }
+        }
     }
 }

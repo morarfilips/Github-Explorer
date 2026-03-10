@@ -1,5 +1,10 @@
 package com.morarfilip.githubexplorer.ui.details
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,6 +44,8 @@ import com.morarfilip.githubexplorer.ui.util.RepositoryPreviewProvider
 @Composable
 fun RepositoryDetailScreen(
     detail: RepositoryDetailRoute,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     onBack: () -> Unit
 ) {
     Scaffold(
@@ -82,6 +89,9 @@ fun RepositoryDetailScreen(
                 ) {
                     DetailAvatar(
                         url = detail.ownerAvatarUrl,
+                        repoId = detail.id,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope = animatedContentScope,
                         modifier = Modifier.weight(1f),
                         size = 280.dp
                     )
@@ -103,7 +113,12 @@ fun RepositoryDetailScreen(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    DetailAvatar(url = detail.ownerAvatarUrl)
+                    DetailAvatar(
+                        url = detail.ownerAvatarUrl,
+                        repoId = detail.id,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope = animatedContentScope
+                    )
                     Spacer(modifier = Modifier.height(24.dp))
                     DetailBody(detail = detail)
                 }
@@ -112,6 +127,7 @@ fun RepositoryDetailScreen(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(
     showBackground = true,
     device = "spec:width=411dp,height=891dp",
@@ -128,12 +144,24 @@ fun PreviewDetailScreenPhone(
     @PreviewParameter(RepositoryPreviewProvider::class) detail: RepositoryDetailRoute
 ) {
     GithubExplorerTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            RepositoryDetailScreen(detail = detail, onBack = {})
+        SharedTransitionLayout {
+            AnimatedContent(targetState = true, label = "detail_preview") { target ->
+                if (target) {
+                    Surface(color = MaterialTheme.colorScheme.background) {
+                        RepositoryDetailScreen(
+                            detail = detail,
+                            sharedTransitionScope = this@SharedTransitionLayout,
+                            animatedContentScope = this@AnimatedContent,
+                            onBack = {}
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(
     showBackground = true,
     device = "spec:width=1280dp,height=800dp,orientation=landscape",
@@ -150,8 +178,19 @@ fun PreviewDetailScreenTablet(
     @PreviewParameter(RepositoryPreviewProvider::class) detail: RepositoryDetailRoute
 ) {
     GithubExplorerTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            RepositoryDetailScreen(detail = detail, onBack = {})
+        SharedTransitionLayout {
+            AnimatedContent(targetState = true, label = "tablet_preview") { target ->
+                if (target) {
+                    Surface(color = MaterialTheme.colorScheme.background) {
+                        RepositoryDetailScreen(
+                            detail = detail,
+                            sharedTransitionScope = this@SharedTransitionLayout,
+                            animatedContentScope = this@AnimatedContent,
+                            onBack = {}
+                        )
+                    }
+                }
+            }
         }
     }
 }

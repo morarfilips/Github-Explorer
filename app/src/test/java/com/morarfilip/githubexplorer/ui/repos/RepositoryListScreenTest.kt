@@ -1,10 +1,14 @@
 package com.morarfilip.githubexplorer.ui.repos
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import com.morarfilip.githubexplorer.core.model.Repository
+import com.morarfilip.githubexplorer.ui.theme.GithubExplorerTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,6 +34,31 @@ class RepositoryListScreenTest {
         "Apache 2.0"
     )
 
+    // Helper to provide the necessary transition scopes for the list
+    @Composable
+    private fun TestListContentWrapper(
+        uiState: RepoUiState,
+        searchQuery: String = "kotlin"
+    ) {
+        GithubExplorerTheme {
+            SharedTransitionLayout {
+                AnimatedContent(targetState = true, label = "list_test") { target ->
+                    if (target) {
+                        RepositoryListContent(
+                            uiState = uiState,
+                            searchQuery = searchQuery,
+                            onQueryChange = {},
+                            onRepoClick = {},
+                            onRefresh = {},
+                            sharedTransitionScope = this@SharedTransitionLayout,
+                            animatedContentScope = this@AnimatedContent
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     @Test
     fun repositoryList_displaysItemsInGrid_onSuccess() {
         // Arrange
@@ -37,13 +66,7 @@ class RepositoryListScreenTest {
 
         // Act
         composeTestRule.setContent {
-            RepositoryListContent(
-                uiState = RepoUiState.Success(mockRepos),
-                searchQuery = "kotlin",
-                onQueryChange = {},
-                onRepoClick = {},
-                onRefresh = {}
-            )
+            TestListContentWrapper(uiState = RepoUiState.Success(mockRepos))
         }
 
         // Assert
@@ -57,13 +80,7 @@ class RepositoryListScreenTest {
     fun repositoryList_displaysLoadingIndicator() {
         // Arrange & Act
         composeTestRule.setContent {
-            RepositoryListContent(
-                uiState = RepoUiState.Loading,
-                searchQuery = "",
-                onQueryChange = {},
-                onRepoClick = {},
-                onRefresh = {}
-            )
+            TestListContentWrapper(uiState = RepoUiState.Loading, searchQuery = "")
         }
 
         // Assert
@@ -77,13 +94,7 @@ class RepositoryListScreenTest {
 
         // Act
         composeTestRule.setContent {
-            RepositoryListContent(
-                uiState = RepoUiState.Error(errorMsg),
-                searchQuery = "",
-                onQueryChange = {},
-                onRepoClick = {},
-                onRefresh = {}
-            )
+            TestListContentWrapper(uiState = RepoUiState.Error(errorMsg))
         }
 
         // Assert
@@ -94,13 +105,7 @@ class RepositoryListScreenTest {
     fun repositoryList_displaysEmptyState_onNoResults() {
         // Arrange & Act
         composeTestRule.setContent {
-            RepositoryListContent(
-                uiState = RepoUiState.Success(emptyList()),
-                searchQuery = "xyz123",
-                onQueryChange = {},
-                onRepoClick = {},
-                onRefresh = {}
-            )
+            TestListContentWrapper(uiState = RepoUiState.Success(emptyList()), searchQuery = "xyz123")
         }
 
         // Assert

@@ -1,5 +1,7 @@
 package com.morarfilip.githubexplorer.ui.details.components
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -15,6 +17,9 @@ import coil.compose.AsyncImage
 @Composable
 fun DetailAvatar(
     url: String,
+    repoId: Long,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     modifier: Modifier = Modifier,
     size: Dp = 150.dp
 ) {
@@ -22,12 +27,18 @@ fun DetailAvatar(
         modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
-        AsyncImage(
-            model = url,
-            contentDescription = "Owner Avatar",
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape)
-        )
+        with(sharedTransitionScope) {
+            AsyncImage(
+                model = url,
+                contentDescription = "Owner Avatar",
+                modifier = Modifier
+                    .sharedElement(
+                        rememberSharedContentState(key = "avatar-$repoId"),
+                        animatedVisibilityScope = animatedContentScope
+                    )
+                    .size(size)
+                    .clip(CircleShape)
+            )
+        }
     }
 }

@@ -1,5 +1,7 @@
 package com.morarfilip.githubexplorer.ui.repos
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,6 +36,8 @@ import com.morarfilip.githubexplorer.ui.repos.components.RepositoryCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepositoryListScreen(
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     onRepoClick: (Repository) -> Unit,
     viewModel: RepoListViewModel = hiltViewModel()
 ) {
@@ -43,6 +47,8 @@ fun RepositoryListScreen(
     RepositoryListContent(
         uiState = uiState,
         searchQuery = searchQuery,
+        sharedTransitionScope,
+        animatedContentScope,
         onQueryChange = viewModel::onSearchQueryChanged,
         onRepoClick = onRepoClick,
         onRefresh = viewModel::refresh
@@ -54,6 +60,8 @@ fun RepositoryListScreen(
 fun RepositoryListContent(
     uiState: RepoUiState,
     searchQuery: String,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope,
     onQueryChange: (String) -> Unit,
     onRepoClick: (Repository) -> Unit,
     onRefresh: () -> Unit
@@ -132,6 +140,8 @@ fun RepositoryListContent(
                                 items(uiState.repos) { repo ->
                                     RepositoryCard(
                                         repo = repo,
+                                        sharedTransitionScope = sharedTransitionScope,
+                                        animatedContentScope = animatedContentScope,
                                         onClick = {
                                             onRepoClick(repo)
                                         }

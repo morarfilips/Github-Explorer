@@ -1,5 +1,8 @@
 package com.morarfilip.githubexplorer.ui.details
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -7,6 +10,7 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import com.morarfilip.githubexplorer.ui.navigation.RepositoryDetailRoute
+import com.morarfilip.githubexplorer.ui.theme.GithubExplorerTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,11 +38,33 @@ class RepositoryDetailScreenTest {
         "Kotlin"
     )
 
+    // Helper to wrap the screen in the required scopes for testing
+    @Composable
+    private fun TestDetailScreenWrapper(onBack: () -> Unit = {}) {
+        GithubExplorerTheme {
+            SharedTransitionLayout {
+                AnimatedContent(
+                    targetState = true,
+                    label = "test"
+                ) { target ->
+                    if (target) {
+                        RepositoryDetailScreen(
+                            detail = mockDetail,
+                            sharedTransitionScope = this@SharedTransitionLayout,
+                            animatedContentScope = this@AnimatedContent,
+                            onBack = onBack
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     @Test
     fun topAppBarShowsCorrectTitleAndBackButton() {
         // Arrange & Act
         composeTestRule.setContent {
-            RepositoryDetailScreen(detail = mockDetail, onBack = {})
+            TestDetailScreenWrapper()
         }
 
         // Assert
@@ -52,7 +78,7 @@ class RepositoryDetailScreenTest {
     fun phonePortrait_showsVerticalLayout() {
         // Arrange & Act
         composeTestRule.setContent {
-            RepositoryDetailScreen(detail = mockDetail, onBack = {})
+            TestDetailScreenWrapper()
         }
 
         // Assert
@@ -66,7 +92,7 @@ class RepositoryDetailScreenTest {
     fun tabletLandscape_showsExpandedLayout() {
         // Arrange & Act
         composeTestRule.setContent {
-            RepositoryDetailScreen(detail = mockDetail, onBack = {})
+            TestDetailScreenWrapper()
         }
 
         // Assert
