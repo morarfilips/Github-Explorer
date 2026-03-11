@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -120,11 +122,18 @@ fun RepositoryListContent(
                     }
 
                     is RepositoryUiState.Error -> Box(modifier = Modifier.fillMaxSize()) {
-                        Text(
-                            text = uiState.message,
-                            modifier = Modifier.align(alignment = Alignment.Center),
-                            color = Color.Red
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = uiState.message,
+                                modifier = Modifier.align(alignment = Alignment.Center),
+                                color = Color.Red
+                            )
+                        }
                     }
 
                     is RepositoryUiState.Success -> {
